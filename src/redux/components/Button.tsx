@@ -7,7 +7,7 @@ export interface Props {
  * Testing that TS works
  * @param props
  */
-function Button<T extends object>(props: Props & T): JSX.Element {
+export function Button<T extends object>(props: Props & T): JSX.Element {
   const { children, ...restProps } = props;
   return (
     <button type="button" {...restProps}>
@@ -15,5 +15,3 @@ function Button<T extends object>(props: Props & T): JSX.Element {
     </button>
   );
 }
-
-export default Button;

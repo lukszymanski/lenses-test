@@ -1,37 +1,38 @@
-const path = require('path');
-const webpack = require('webpack');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require("path");
+const webpack = require("webpack");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
-const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
 
-const NODE_MODULES = path.resolve(__dirname, 'node_modules');
-const ENV = process.env.NODE_ENV || 'development';
-const isProd = ENV === 'production';
-const LENSES_HTTP_URL = 'http://localhost:3030/';
-const LENSES_WS_URL = 'ws://localhost:3030/';
+const NODE_MODULES = path.resolve(__dirname, "node_modules");
+const ENV = process.env.NODE_ENV || "development";
+const isProd = ENV === "production";
+const LENSES_HTTP_URL = "http://localhost:3030/";
+const LENSES_WS_URL = "ws://localhost:3030/";
 
 console.log(`Building for ${ENV}`);
 
 let plugins = [
   new webpack.DefinePlugin({
-    'process.env': { NODE_ENV: JSON.stringify(ENV) },
+    "process.env": { NODE_ENV: JSON.stringify(ENV) },
   }),
   new HtmlWebpackPlugin({
-    template: './src/redux/index.html',
-    filename: './index.html',
+    template: "./src/redux/index.html",
+    filename: "./index.html",
     excludeChunks: [],
   }),
   new MiniCssExtractPlugin({
-    filename: isProd ? 'assets/css/[name].[hash].css' : 'assets/css/[name].css',
-    chunkFilename: isProd ? 'assets/css/[id].[hash].css' : 'assets/css/[id].css',
+    filename: isProd ? "assets/css/[name].[hash].css" : "assets/css/[name].css",
+    chunkFilename: isProd
+      ? "assets/css/[id].[hash].css"
+      : "assets/css/[id].css",
   }),
   new CopyWebpackPlugin({
-    patterns: [
-      { from: 'src/assets/images', to: 'images' }
-    ],
+    patterns: [{ from: "src/assets/images", to: "images" }],
   }),
 ];
 
@@ -42,71 +43,72 @@ if (isProd) {
     new OptimizeCssAssetsPlugin({
       cssProcessorOptions: {
         discardComments: {
-          removeAll: true
-        }
-      }
+          removeAll: true,
+        },
+      },
     })
-  )
+  );
 } else {
-  plugins.push(
-    new webpack.HotModuleReplacementPlugin()
-  )
+  plugins.push(new webpack.HotModuleReplacementPlugin());
 }
 
 const config = {
-  mode: !isProd ? 'development' : 'production',
+  mode: !isProd ? "development" : "production",
   watch: !isProd,
-  devtool: !isProd ? 'source-map' : false,
+  devtool: !isProd ? "source-map" : false,
   entry: {
-    'redux-lenses-streaming-example': './src/redux/index.js',
+    "redux-lenses-streaming-example": "./src/redux/index.ts",
   },
   output: {
     filename: isProd ? "js/[name].[chunkhash].js" : "js/[name].[hash].js",
-    path: path.resolve(__dirname, 'dist'),
-    publicPath: '',
+    path: path.resolve(__dirname, "dist"),
+    publicPath: "",
   },
 
   module: {
     rules: [
       {
         test: /\.(ts|js)x?$/,
-        resolve: { extensions: ['.js', '.jsx', '.ts', '.tsx'] },
-        loader: 'babel-loader',
-        exclude: /node_modules/
+        resolve: { extensions: [".js", ".jsx", ".ts", ".tsx"] },
+        loader: "ts-loader",
+        exclude: /node_modules/,
       },
       {
         test: /\.s[ac]ss$/,
-        use: [{
-          loader: isProd ? MiniCssExtractPlugin.loader : "style-loader"
-        },
-        {
-          loader: "css-loader",
-        },
-        {
-          loader: "sass-loader",
-          options: {
-            sassOptions: {
-              includePaths: ["src"]
-            }
-          }
-        }]
+        use: [
+          {
+            loader: isProd ? MiniCssExtractPlugin.loader : "style-loader",
+          },
+          {
+            loader: "css-loader",
+          },
+          {
+            loader: "sass-loader",
+            options: {
+              sassOptions: {
+                includePaths: ["src"],
+              },
+            },
+          },
+        ],
       },
       {
         test: /\.css$/,
-        use: [{
-          loader: isProd ? MiniCssExtractPlugin.loader : "style-loader"
-        },
-        {
-          loader: "css-loader"
-        }]
+        use: [
+          {
+            loader: isProd ? MiniCssExtractPlugin.loader : "style-loader",
+          },
+          {
+            loader: "css-loader",
+          },
+        ],
       },
     ],
   },
   resolve: {
-    extensions: ['.js', '.jsx', '.sass', '.scss'],
-    modules: [
-      'node_modules',
-    ],
+    plugins: [new TsconfigPathsPlugin()],
+    extensions: [".js", ".jsx", ".sass", ".scss"],
+    modules: ["node_modules"],
   },
   plugins,
   devServer: {
@@ -120,25 +122,26 @@ const config = {
     noInfo: false,
     progress: true,
     proxy: {
-      '/api': {
+      "/api": {
         target: LENSES_HTTP_URL,
         secure: false,
-        changeOrigin: true
+        changeOrigin: true,
       },
-      '/api/ws': {
+      "/api/ws": {
         target: LENSES_WS_URL,
         secure: false,
         changeOrigin: true,
-        ws: true
-      }
+        ws: true,
+      },
     },
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Credentials': 'true',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-      'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization'
-    }
-  }
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+      "Access-Control-Allow-Headers":
+        "X-Requested-With, content-type, Authorization",
+    },
+  },
 };
 
 module.exports = config;
