@@ -6,12 +6,12 @@ interface Config {
 
 export interface WSParams {
   token: string;
-  stats: number;
+  stats?: number;
   sql: string;
-  live: boolean;
+  live?: boolean;
 }
 
-export type LensesEventValues = Record<string, number | boolean | string>;
+export type LensesEventValues = Record<string, number | boolean | string | null>;
 
 export interface LensesEventData {
   key: string;
@@ -95,6 +95,7 @@ export const useWebsocket = (config: Config) => {
   }, [event]);
 
   return {
+    count,
     messages,
     close,
     clear,
