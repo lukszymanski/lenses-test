@@ -7,7 +7,7 @@ import { Type } from "../actions";
 function configureStore() {
   const logger = createLogger({
     collapsed: true,
-    predicate: (_, action) => action.type !== Type.UPDATE_PASSWORD,
+    predicate: (state, action) => action.type !== Type.UPDATE_PASSWORD,
   });
 
   const middleware = [logger];

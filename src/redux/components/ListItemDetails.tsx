@@ -1,5 +1,5 @@
 import React from "react";
-import { LensesEventData } from "../containers/websocket.hook";
+import { LensesEventData } from "@app/hooks";
 
 import { Button } from "./Button";
 

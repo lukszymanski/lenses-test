@@ -1,18 +1,22 @@
 import React from "react";
+import { useSelector } from "react-redux";
+
+import { sessionSelector } from "@app/reducers";
 
 import { Connect } from "./Connect";
-import { Subscribe } from "./Subscribe";
+import { Subscribe } from "../components/Subscribe";
 import { MessageList } from "../components/MessageList";
-import { useWebsocket } from "./websocket.hook";
+import { useWebsocket } from "@app/hooks";
 
 export const MainContainer = () => {
-  const { query, messages } = useWebsocket({
+  const { token } = useSelector(sessionSelector);
+  const { query, messages, clear } = useWebsocket({
     url: "ws://localhost:8000/api/ws/v2/sql/execute",
   });
 
   const commit: any = null;
 
-  const clearMessages = () => {};
+  const clearMessages = () => clear();
 
   return (
     <div className="container app">
@@ -24,6 +28,7 @@ export const MainContainer = () => {
       <div className="columns">
         <div className="column">
           <Subscribe
+            token={token}
             messages={messages}
             clearMessages={clearMessages}
             subscribe={(params) => query(params)}

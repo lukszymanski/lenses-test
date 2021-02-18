@@ -1,16 +1,35 @@
 import React from "react";
 import { List, AutoSizer } from "react-virtualized";
-import { LensesEvent, LensesEventData } from "../containers/websocket.hook";
+import { LensesEvent, LensesEventData, LensesEventValues } from "@app/hooks";
+import { Filters } from "./Filters";
 
 import { ListItemDetails } from "./ListItemDetails";
 
 interface Props {
-  messages: any[];
+  messages: string[];
   onCommitMessage: () => void;
 }
 
+const ALLOWED_FILTERS = [
+  "Type",
+  "Accuracy",
+  "RAIM",
+  "MMSI",
+  "Status",
+  "merchantId",
+  "amount",
+  "currency",
+];
+
 export const MessageList = (props: Props) => {
+  const [filterStructure, setFilterStructure] = React.useState<
+    { key: string; type: string }[]
+  >([]);
+  const [filters, setFilters] = React.useState<LensesEventValues>();
   const [message, setMessage] = React.useState<LensesEventData>();
+  const [filteredMessages, setFilteredMessages] = React.useState<string[]>(
+    props.messages
+  );
   const list = React.useRef<List>(null);
 
   React.useEffect(() => {
@@ -18,6 +37,43 @@ export const MessageList = (props: Props) => {
       list.current.scrollToRow(props.messages.length);
     }
   }, []);
+
+  React.useEffect(() => {
+    if (props.messages.length) {
+      const [firstMessage] = props.messages;
+      const { data } = JSON.parse(firstMessage) as LensesEvent;
+
+      const filterTypes = Object.keys(data.value)
+        .filter((key) => ALLOWED_FILTERS.includes(key))
+        .reduce((types, key) => {
+          return [...types, { key, type: typeof data.value[key] }];
+        }, []);
+      setFilterStructure(filterTypes);
+    }
+
+    if (!filters) {
+      setFilteredMessages(props.messages);
+      return;
+    }
+
+    const filterValues = Object.fromEntries(
+      Object.entries(filters).filter(([_, v]) => v != null)
+    );
+
+    const filteredData = props.messages.filter((item) => {
+      const data = JSON.parse(item).data as LensesEventData;
+
+      return Object.entries(filterValues).every(
+        ([key, value]) => value === data.value[key]
+      );
+    });
+
+    setFilteredMessages(filteredData);
+  }, [props.messages.length, filters]);
+
+  const handleSubmitFilters = (filters: Partial<LensesEventValues>) => {
+    setFilters(filters);
+  };
 
   const onShowRowDetails = (newMessage: LensesEventData) => {
     setMessage(newMessage);
@@ -39,12 +95,6 @@ export const MessageList = (props: Props) => {
       };
     });
 
-    // const metas: { label: string; value: string }[] = Object.entries(
-    //   currentMessage
-    // ).map(([]) => {
-    //   return { label: k, value: JSON.stringify(currentMessage.data[k]) };
-    // });
-
     return (
       <div
         key={key}
@@ -63,19 +113,17 @@ export const MessageList = (props: Props) => {
             value={item.value}
           />
         ))}
-        {/* {metas.map((item) => (
-          <MessageListItem
-            key={item.label}
-            label={item.label}
-            value={item.value}
-          />
-        ))} */}
       </div>
     );
   };
 
   return (
     <div>
+      <Filters
+        structure={filterStructure}
+        filters={filters}
+        onChange={handleSubmitFilters}
+      />
       <ListItemDetails
         message={message}
         onCommitMessage={props.onCommitMessage}
@@ -84,14 +132,14 @@ export const MessageList = (props: Props) => {
       <nav className="panel">
         <div className="panel-block">
           <AutoSizer className="autosizer-bulma-fix">
-            {({ width }) => (
+            {({ width }: { width: number }) => (
               <List
                 ref={list}
                 width={width}
                 height={290}
-                rowCount={props.messages.length}
+                rowCount={filteredMessages.length}
                 rowHeight={160}
-                rowRenderer={rowRenderer(props.messages)}
+                rowRenderer={rowRenderer(filteredMessages)}
               />
             )}
           </AutoSizer>
@@ -109,7 +157,7 @@ const MessageListItem = ({
   value: string;
 }) => {
   return (
-    <div className="column is-2"  style={{ wordBreak: 'break-word' }}>
+    <div className="column is-2" style={{ wordBreak: "break-word" }}>
       <div>{label}</div>
       {value}
     </div>

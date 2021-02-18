@@ -1,14 +1,12 @@
 import React from "react";
 
-import { useSelector } from "react-redux";
 import classnames from "classnames";
 
-import { sessionSelector } from "@app/reducers";
-
-import { Button } from "../components/Button";
-import { WSParams } from "./websocket.hook";
+import { Button } from "./Button";
+import { WSParams } from "@app/hooks";
 
 interface Props {
+  token: string;
   messages: any[];
   clearMessages: () => void;
   subscribe: (params: WSParams) => void;
@@ -16,7 +14,6 @@ interface Props {
 
 export const Subscribe = (props: Props) => {
   const [sql, setSQLs] = React.useState("");
-  const { token } = useSelector(sessionSelector);
 
   const onSqlsChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setSQLs(event.target.value);
@@ -24,7 +21,7 @@ export const Subscribe = (props: Props) => {
 
   const onSubscribe = () => {
     props.subscribe({
-      token,
+      token: props.token,
       stats: 2,
       sql,
       live: true,
