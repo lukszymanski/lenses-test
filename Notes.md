@@ -12,3 +12,5 @@ Changes:
 
 Comments for the author
 Exercise was fun :) If more time give, i would add more unit tests - specially for that custom hook. The purpose of that custom hook is to have a single place that will be responsible to handling the connection and messages that will come in.
+
+Thanks.
